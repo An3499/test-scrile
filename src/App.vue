@@ -3,14 +3,19 @@
     <v-main data-app>
       <v-container>
         <v-layout justify-center>
-          <v-flex>
-            <v-btn @click="toggleModal"> Зарегистрироваться</v-btn>
+          <v-flex class="container__title">
+            <v-btn class="container_title__btn" @click="toggleModal"
+              >Зарегистрироваться</v-btn
+            >
           </v-flex>
         </v-layout>
       </v-container>
 
       <v-container v-if="isShowModal" class="container_modal">
-        <v-layout class="modal-body">
+        <v-layout
+          :class="$vuetify.breakpoint.xs && 'fullscreen'"
+          class="modal-body"
+        >
           <v-flex>
             <!-- Закрыть -->
             <template>
@@ -19,25 +24,51 @@
               </v-btn>
             </template>
             <v-card>
-              <v-subheader>Title form</v-subheader>
-              <v-form class="container_modal__form">
+              <v-subheader class="form__title">Title form</v-subheader>
+              <v-form
+                class="container_modal__form"
+                ref="form"
+                v-model="valid"
+                lazy-validation
+              >
                 <!-- Имя -->
-                <v-text-field label="First Name *" autofocus filled />
+                <v-text-field
+                  v-model="firstName"
+                  label="First Name *"
+                  autofocus
+                  filled
+                  required
+                  :rules="nameRules"
+                />
 
                 <!-- Фамилия -->
-                <v-text-field label="Last Name *" autofocus filled />
+                <v-text-field
+                  v-model="lastName"
+                  label="Last Name *"
+                  filled
+                  required
+                  :rules="nameRules"
+                />
 
                 <!-- E-mail -->
-                <v-text-field label="user@gmail.com *" autofocus filled />
+                <v-text-field
+                  :rules="emailRules"
+                  v-model="mail"
+                  label="user@gmail.com *"
+                  filled
+                  required
+                />
 
                 <!-- Выбор продукта -->
                 <v-row align="center">
                   <v-col cols="6">
-                    <v-subheader> Product type * </v-subheader>
+                    <v-subheader> Product type *</v-subheader>
                   </v-col>
 
                   <v-col cols="6">
                     <v-select
+                      :rules="[(v) => !!v || 'Item is required']"
+                      required
                       dense
                       solo
                       v-model="select"
@@ -70,8 +101,9 @@
 
                 <!-- Комментарий -->
                 <v-textarea
-                  outlined
+                  v-model="comment"
                   auto-grow
+                  outlined
                   rows="2"
                   filled
                   label="Type your comment"
@@ -86,7 +118,12 @@
                 <v-container>
                   <v-layout>
                     <v-flex class="container_btn_send">
-                      <v-btn class="btn_send" color="#2196F3">
+                      <v-btn
+                        type="submit"
+                        @click="btnSend"
+                        class="btn_send"
+                        color="#2196F3"
+                      >
                         Send form
                       </v-btn>
                     </v-flex>
@@ -102,16 +139,43 @@
 </template>
 
 <style scoped>
+.form__title {
+  font-size: 20px;
+  color: black !important;
+}
+
+.fullscreen {
+  width: 100%;
+  height: 100%;
+  max-width: 100% !important;
+  max-height: 100%;
+}
+
+.container__title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 90vh;
+  color: tomato;
+}
+
+.container_title__btn {
+  background-color: rgb(31, 221, 31) !important;
+  width: 300px;
+  height: 100px !important;
+  color: tomato;
+}
+
 .container_modal {
   position: absolute;
   top: 0;
   display: flex;
   justify-content: center;
   align-items: center;
-  max-width: 100vw;
+  max-width: 100%;
   padding: 0;
   margin: 0;
-  height: 100vh;
+  height: 100%;
   background: rgba(0, 0, 0, 0.22);
 }
 
@@ -159,6 +223,20 @@ export default Vue.extend({
     ],
     switch1: 0,
     switch2: 0,
+
+    valid: "",
+    firstName: "",
+    lastName: "",
+    mail: "",
+    comment: "",
+    nameRules: [(v: string) => !!v || "Name is required"],
+    emailRules: [
+      (v: string) => !!v || "E-mail is required",
+      (v: string) =>
+        /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(
+          v
+        ) || "E-mail must be valid",
+    ],
   }),
   methods: {
     toggleModal(event: MouseEvent) {
@@ -168,8 +246,13 @@ export default Vue.extend({
       return true;
     },
     calcTotalPrice(): number {
-      console.log(this.select);
       return Number(this.select) + Number(this.switch1) + Number(this.switch2);
+    },
+
+    btnSend(event: MouseEvent): void {
+      if (!this.$refs.form.validate()) {
+        event.preventDefault();
+      }
     },
   },
 });
